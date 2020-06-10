@@ -18,7 +18,7 @@ pipeline {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'Aa2469129']]){
 					sh '''
-						docker build -t mbehairy/capstone .
+						sudo docker build -t mbehairy/capstone .
 					'''
 				}
 			}
@@ -28,8 +28,8 @@ pipeline {
 			steps {
 				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'Aa2469129']]){
 					sh '''
-						docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-						docker push mbehairy/capstone
+						sudo docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+						sudo docker push mbehairy/capstone
 					'''
 				}
 			}
