@@ -16,7 +16,7 @@ pipeline {
 		
 		stage('Build Docker Image') {
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'Aa2469129']]){
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]){
 					sh '''
 						docker build -t mbehairy/capstone .
 					'''
