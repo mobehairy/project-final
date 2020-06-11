@@ -8,7 +8,6 @@ pipeline {
 					sh '''
 						eksctl create cluster \
 						--name project-final \
-						--version 1.16 \
 						--nodegroup-name standard-workers \
 						--node-type t2.small \
 						--nodes 2 \
