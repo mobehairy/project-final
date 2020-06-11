@@ -16,7 +16,7 @@ pipeline {
 		
 		stage('Build Docker Image') {
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'Aa2469129']]){
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'P@ss@2020']]){
 					sh '''
 						sudo docker build -t mbehairy/capstone .
 					'''
@@ -26,9 +26,9 @@ pipeline {
 
 		stage('Push Image To Dockerhub') {
 			steps {
-				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'Aa2469129']]){
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'mbehairy', usernameVariable: 'mbehairy', passwordVariable: 'P@ss@2020']]){
 					sh '''
-						sudo docker login -u mbehairy -p Aa2469129
+						sudo docker login -u mbehairy -p P@ss@2020
 						sudo docker push mbehairy/capstone
 					'''
 				}
