@@ -2,34 +2,90 @@ pipeline {
 	agent any
 	stages {
 
-		stage('Create kubernetes cluster') {
+		stage('Lint HTML') {
 			steps {
-				withAWS(region:'us-east-2', credentials:'aws-static') {
+				sh 'tidy -q -e *.html'
+			}
+		}
+		
+		stage('Lint Dockerfile')  {
+		    steps {
+			    sh 'hadolint Dockerfile'
+			}
+		}
+		
+		stage('Build Docker Image') {
+			steps {
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]){
 					sh '''
-						eksctl create cluster \
-						--name cluster-final \
-						--nodegroup-name standard-workers \
-						--node-type t2.small \
-						--nodes 2 \
-						--nodes-min 1 \
-						--nodes-max 3 \
-						--node-ami auto \
-						--region us-east-2 \
-						--zones us-east-2a \
-						--zones us-east-2b \
-						--zones us-east-2c \
+						sudo docker build -t mbehairy/capstone .
 					'''
 				}
 			}
 		}
 
-		
+		stage('Push Image To Dockerhub') {
+			steps {
+				withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD']]){
+					sh '''
+						sudo docker login -u DOCKER_USERNAME -p DOCKER_PASSWORD
+						sudo docker push mbehairy/capstone
+					'''
+				}
+			}
+		}
 
-		stage('Create conf file cluster') {
+		stage('Set current kubectl context') {
 			steps {
 				withAWS(region:'us-east-2', credentials:'aws-static') {
 					sh '''
-						aws eks --region us-east-2 update-kubeconfig --name cluster-final
+						kubectl config use-context arn:aws:eks:us-east-2:782853834447:cluster/cluster-final
+					'''
+				}
+			}
+		}
+
+		stage('Deploy blue container') {
+			steps {
+				withAWS(region:'us-east-2', credentials:'aws-static') {
+					sh '''
+						kubectl apply -f ./blue-controller.json
+					'''
+				}
+			}
+		}
+
+		stage('Deploy green container') {
+			steps {
+				withAWS(region:'us-east-2', credentials:'aws-static') {
+					sh '''
+						kubectl apply -f ./green-controller.json
+					'''
+				}
+			}
+		}
+
+		stage('Create the service in the cluster, redirect to blue') {
+			steps {
+				withAWS(region:'us-east-2', credentials:'aws-static') {
+					sh '''
+						kubectl apply -f ./blue-service.json
+					'''
+				}
+			}
+		}
+
+		stage('Wait user approve') {
+            steps {
+                input "Ready to redirect traffic to green?"
+            }
+        }
+
+		stage('Create the service in the cluster, redirect to green') {
+			steps {
+				withAWS(region:'us-east-2', credentials:'aws-static') {
+					sh '''
+						kubectl apply -f ./green-service.json
 					'''
 				}
 			}
